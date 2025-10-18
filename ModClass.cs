@@ -64,6 +64,13 @@ namespace MythrilSoul
                         values: [ "On", "Off" ],
                         applySetting: index => GS.usePause = index == 0,
                         loadSetting: () => GS.usePause ? 0 : 1
+                    ),
+                    new HorizontalOption(
+                        name: "Mythril Soul HUD Frame",
+                        description: "Enable the Mythril Soul HUD Frame -- turn off to use custom skins",
+                        values: ["On", "Off"],
+                        applySetting: index => GS.useHFrame = index == 0,
+                        loadSetting: () => GS.useHFrame ? 0 : 1
                     )
                 ]
             );
@@ -170,9 +177,11 @@ namespace MythrilSoul
         
         public void LoadTex()
         {
-            Log("Updating HUD Frame texture with pack " + GS.pack);
-            if (GS.msGames.Contains(GameManager.instance.profileID))
+            if (GS.msGames.Contains(GameManager.instance.profileID) && GS.useHFrame)
+            {
+                Log("Updating HUD Frame texture with pack " + GS.pack);
                 GameCameras.instance.hudCanvas.transform.GetComponentsInChildren<Transform>().Where(t => t.gameObject.name == "HUD_frame").First().gameObject.GetComponent<tk2dSprite>().CurrentSprite.material.mainTexture = bundle.LoadAsset<Sprite>(GS.pack + "-atlas").texture;
+            }
         }
 
         public override void Initialize(Dictionary<string, Dictionary<string, GameObject>> preloadedObjects)
@@ -262,10 +271,12 @@ namespace MythrilSoul
         public HashSet<int> msGames = [];
         public string pack;
         public bool usePause;
+        public bool useHFrame;
 
         public MSGlobalSettings() {
             pack = "mythril";
             usePause = true;
+            useHFrame = true;
         }
     }
 }
