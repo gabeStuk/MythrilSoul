@@ -15,6 +15,17 @@ namespace MythrilSoul
 {
     public class MythrilSoul : Mod, ICustomMenuMod, IGlobalSettings<MSGlobalSettings>
     {
+        public static string normalMsg = """
+            You played skillfully and proved you had a Mythril Soul.
+            Thank you for taking the time to explore and conquer the world we built.
+            We'll meet again soon with a new challenge for you...
+           """;
+
+        public static string p5Msg = """
+            You played skillfully and proved you had a Mythril Soul.
+            Thank you for taking the time to explore and conquer the world we built.
+            With your dreams subdued, betray then void: take up the silken mantle.
+           """;
 
         public static string[] packs = [
             "mythril",
@@ -85,6 +96,7 @@ namespace MythrilSoul
         public override string GetVersion() => "1.0.0";
 
         public GameObject mythrilSoul = new GameObject();
+        public bool isInP5 = false;
 
         public void OnLoadGlobal(MSGlobalSettings ms)
         {
@@ -121,18 +133,6 @@ namespace MythrilSoul
             return UIManager.instance.playModeMenuScreen.gameObject.GetComponentsInChildren<Transform>(true).Where(t => t.gameObject.GetName().Contains("Button")).Select(t => t.gameObject);
         }
 
-        public IEnumerator CheckSetPause(On.GameManager.orig_PauseGameToggle orig, global::GameManager self)
-        {
-            if (GS.usePause && GS.msGames.Contains(GameManager.instance.profileID) && GameManager.instance.gameState == GlobalEnums.GameState.PLAYING && GameManager.instance.playerData.health <= 2)
-            {
-                yield return null;
-            }
-            else
-            {
-                yield return orig(self);
-            }
-        }
-
         public void LoadBundle()
         {
             Log("Loading assetbundle");
@@ -151,8 +151,8 @@ namespace MythrilSoul
             else
             {
                 Log("Updating menu textures, updating mythril mode button; pack: " + GS.pack);
-                GameObject.DestroyImmediate(mythrilSoul);
-                mythrilSoul = GameObject.Instantiate(GetSteelSoulButton());
+                UnityEngine.Object.DestroyImmediate(mythrilSoul);
+                mythrilSoul = UnityEngine.Object.Instantiate(GetSteelSoulButton());
                 MenuScreen playScreen = UIManager.instance.playModeMenuScreen;
                 playScreen.content.GetComponent<VerticalLayoutGroup>().spacing = 2f;
                 mythrilSoul.transform.Find("Image").gameObject.GetComponent<Image>().sprite = bundle.LoadAsset<Sprite>(GS.pack + "-mode");
@@ -189,18 +189,15 @@ namespace MythrilSoul
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) =>
             {
                 if (s.name == "Menu_Title") LoadThings();
-                if (s.name == "End_Credits" && GS.msGames.Contains(GameManager.instance.profileID))
+                else if (s.name == "End_Credits" && GS.msGames.Contains(GameManager.instance.profileID))
                 {
                     var co = GameObject.Find("credits object");
                     var ca = co.transform.GetComponentsInChildren<Transform>(true).Where(t => t.gameObject.GetName() == "congrats body perma");
                     var cbp = ca.First().gameObject;
                     cbp.GetComponent<SetTextMeshProGameText>().enabled = false;
-                    cbp.GetComponent<TextMeshPro>().text = """
-                        You played skillfully and proved you had a Mythril Soul.
-                        Thank you for taking the time to explore and conquer the world we built.
-                        With your dreams subdued, betray then void: take up the silken mantle.
-                    """;
+                    cbp.GetComponent<TextMeshPro>().text = isInP5 ? p5Msg : normalMsg;
                 }
+                if (StaticVariableList.GetValue<bool>("ggCinematicEnding")) isInP5 = true;
             };
             LoadBundle();
             On.GameManager.BeginScene += (o, s) =>
@@ -215,17 +212,19 @@ namespace MythrilSoul
             };
             ModHooks.FinishedLoadingModsHook += () =>
             {
-                On.GameManager.PauseGameToggle += CheckSetPause;
                 LoadThings();
             };
-
+            ModHooks.HeroUpdateHook += () =>
+            {
+                PlayerData.instance.disablePause = GameManager.instance.playerData.health <= 2 || GameManager.instance.IsCinematicScene();
+            };
             ModHooks.AfterTakeDamageHook += (h, d) =>
             {
                 if (d >= GameManager.instance.playerData.health + GameManager.instance.playerData.healthBlue && GS.msGames.Contains(GameManager.instance.profileID))
                 {
                     // kill
                     PlayerData.instance.permadeathMode = 2;
-                    MythrilQuitter.Start(GameManager.instance.ReturnToMainMenu((GameManager.ReturnToMainMenuSaveModes.SaveAndContinueOnFail)));
+                    MythrilQuitter.Start(GameManager.instance.ReturnToMainMenu(GameManager.ReturnToMainMenuSaveModes.SaveAndContinueOnFail));
                 }
 
                 return d;

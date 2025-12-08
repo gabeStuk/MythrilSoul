@@ -7,7 +7,6 @@ A mod that expands on Steel Soul for some extra difficulty. Fundamentally, this 
 - If the player's health reaches zero at ANY point, the player is "defeated" regardless of whether they are in a dream.
 	- This means death in Godhome and dream bosses (Lost Kin, etc.) is permanent
 - Pausing at <\= 2 heath is disabled (prevent save + quit at low health).
-	- This feature may not work properly if you are using other mods that affect the pause sequence, such as BenchWarp (menu appears on pause)
 	- Pause disabling can be turned off in settings under "Pause Control"
 - The mod also currently features three different themes/appearances for the mod (imagine all the blue stuff as different colors) that definitely aren't just tinted versions of all the steel soul sprites. They can be selected between under "appearance" in settings
  
