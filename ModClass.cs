@@ -188,7 +188,6 @@ namespace MythrilSoul
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) =>
             {
                 if (s.name == "Menu_Title") LoadMenu();
-                if (!GS.msGames.Contains(GameManager.instance.profileID)) return;
                 else if (s.name == "End_Credits" && GS.msGames.Contains(GameManager.instance.profileID))
                 {
                     var co = GameObject.Find("credits object");
@@ -223,7 +222,6 @@ namespace MythrilSoul
             {
                 if (GS.msGames.Contains(GameManager.instance.profileID) && d >= PlayerData.instance.GetInt("health") + PlayerData.instance.GetInt("healthBlue"))
                 {
-                    // kill
                     PlayerData.instance.SetInt("permadeathMode", 2);
                     MythrilQuitter.Start(GameManager.instance.ReturnToMainMenu(GameManager.ReturnToMainMenuSaveModes.SaveAndContinueOnFail));
                 }
