@@ -65,7 +65,7 @@ namespace MythrilSoul
                         values: packs,
                         applySetting: index => {
                             GS.pack = packs[index];
-                            LoadThings();
+                            LoadMenu();
                         },
                         loadSetting: () => Array.IndexOf(packs, GS.pack)
                     ),
@@ -93,7 +93,7 @@ namespace MythrilSoul
 
         public bool ToggleButtonInsideMenu => false;
 
-        public override string GetVersion() => "1.0.0";
+        public override string GetVersion() => "1.0.0.1";
 
         public GameObject mythrilSoul = new GameObject();
         public bool isInP5 = false;
@@ -141,7 +141,7 @@ namespace MythrilSoul
             s.Dispose();
         }
 
-        public void LoadThings()
+        public void LoadMenu()
         {
             if (GameManager.instance.IsGameplayScene())
             {
@@ -187,7 +187,8 @@ namespace MythrilSoul
         {
             UnityEngine.SceneManagement.SceneManager.sceneLoaded += (s, m) =>
             {
-                if (s.name == "Menu_Title") LoadThings();
+                if (s.name == "Menu_Title") LoadMenu();
+                if (!GS.msGames.Contains(GameManager.instance.profileID)) return;
                 else if (s.name == "End_Credits" && GS.msGames.Contains(GameManager.instance.profileID))
                 {
                     var co = GameObject.Find("credits object");
@@ -201,7 +202,7 @@ namespace MythrilSoul
             LoadBundle();
             On.GameManager.BeginScene += (o, s) =>
             {
-                if (GameManager.instance.IsGameplayScene()) LoadTex();
+                LoadTex();
                 o(s);
             };
             ModHooks.NewGameHook += LoadTex;
@@ -211,18 +212,19 @@ namespace MythrilSoul
             };
             ModHooks.FinishedLoadingModsHook += () =>
             {
-                LoadThings();
+                LoadMenu();
             };
             ModHooks.HeroUpdateHook += () =>
             {
-                PlayerData.instance.disablePause = (GameManager.instance.playerData.health <= 2 && GS.usePause) || GameManager.instance.IsCinematicScene();
+                if (GS.msGames.Contains(GameManager.instance.profileID))
+                    PlayerData.instance.SetBool("disablePause", (PlayerData.instance.GetInt("health") <= 2 && GS.usePause) || GameManager.instance.IsCinematicScene());
             };
             ModHooks.AfterTakeDamageHook += (h, d) =>
             {
-                if (d >= GameManager.instance.playerData.health + GameManager.instance.playerData.healthBlue && GS.msGames.Contains(GameManager.instance.profileID))
+                if (GS.msGames.Contains(GameManager.instance.profileID) && d >= PlayerData.instance.GetInt("health") + PlayerData.instance.GetInt("healthBlue"))
                 {
                     // kill
-                    PlayerData.instance.permadeathMode = 2;
+                    PlayerData.instance.SetInt("permadeathMode", 2);
                     MythrilQuitter.Start(GameManager.instance.ReturnToMainMenu(GameManager.ReturnToMainMenuSaveModes.SaveAndContinueOnFail));
                 }
 
