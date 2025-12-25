@@ -143,7 +143,6 @@ namespace MythrilSoul
 
         public void LoadThings()
         {
-            //LoadTex();
             if (GameManager.instance.IsGameplayScene())
             {
                 LoadTex();
