@@ -215,7 +215,7 @@ namespace MythrilSoul
             };
             ModHooks.HeroUpdateHook += () =>
             {
-                PlayerData.instance.disablePause = GameManager.instance.playerData.health <= 2 || GameManager.instance.IsCinematicScene();
+                PlayerData.instance.disablePause = (GameManager.instance.playerData.health <= 2 && GS.usePause) || GameManager.instance.IsCinematicScene();
             };
             ModHooks.AfterTakeDamageHook += (h, d) =>
             {
